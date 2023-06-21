@@ -1,3 +1,13 @@
+//imu側の設定
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BNO055.h>
+#include <utility/imumaths.h>
+Adafruit_BNO055 bno = Adafruit_BNO055(55);
+
+
+
+
 //Pin番号定義
 #define motorEnabled 11
 #define runbrake 10
@@ -26,6 +36,18 @@ float cmd_vel = 0; // 速度を表す変数
 
 
 void setup() {
+  //----------------------------------------------------//
+  //imu
+  //pinMode(21, INPUT_PULLUP); //SDA 21番ピンのプルアップ(念のため)
+  //pinMode(22, INPUT_PULLUP); //SDA 22番ピンのプルアップ(念のため)
+  if (!bno.begin()) // センサの初期化
+  {
+    while (1);
+  }
+  delay(1000);
+  bno.setExtCrystalUse(true);
+  //----------------------------------------------------//
+  //motor
   pinMode(motorEnabled, OUTPUT);     //H:START L:STOP
   pinMode(runbrake, OUTPUT);  //H:RUN L:BREAK(Instant stop)
   pinMode(motorDirection, OUTPUT);     //H:Right L:Left)  
@@ -40,7 +62,6 @@ void setup() {
   digitalWrite(AlarmReset, HIGH);
   //モータの制御状況がわかるらしいが使わない
   digitalWrite(INT, HIGH);
-
   Serial.begin(9600); // シリアル通信を開始する
   attachInterrupt(encoder, RecognizeRotation, RISING); //FALLING);  //割り込み処理定義
 }
@@ -51,6 +72,56 @@ void RecognizeRotation(void){
 }
 
 
+//--------------------------------------------------------------------------------------------------.
+//imu
+void get_sensor_data(void){
+  //imuデータ取得
+  // ジャイロセンサ値の取得と表示
+  /*
+  imu::Vector<3> gyroscope = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
+  Serial.print(" 　Gy_xyz:");
+  Serial.print(gyroscope.x());
+  Serial.print(", ");
+  Serial.print(gyroscope.y());
+  Serial.print(", ");
+  Serial.print(gyroscope.z());
+  */
+
+  // 加速度センサ値の取得と表示
+  imu::Vector<3> accelermetor = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);
+  Serial.print(" 　Ac_xyz:");
+  Serial.print(accelermetor.x());
+  Serial.print(", ");
+  Serial.print(accelermetor.y());
+  Serial.print(", ");
+  Serial.print(accelermetor.z());
+
+
+  // 磁力センサ値の取得と表示
+   /*
+  imu::Vector<3> magnetmetor = bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
+  Serial.print(" 　Mg_xyz:");
+  Serial.print(magnetmetor .x());
+  Serial.print(", ");
+  Serial.print(magnetmetor .y());
+  Serial.print(", ");
+  Serial.print(magnetmetor .z());
+  */
+
+  // センサフュージョンによる方向推定値の取得と表示
+  imu::Vector<3> euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
+  Serial.print("DIR_xyz:");
+  Serial.print(euler.x());
+  Serial.print(", ");
+  Serial.print(euler.y());
+  Serial.print(", ");
+  Serial.print(euler.z());
+}
+
+
+
+//--------------------------------------------------------------------------------------------------//
+//cart_motor
 //移動距離の計算
 void estimatePosition(void){
   encoderPos=pulse;
@@ -58,15 +129,9 @@ void estimatePosition(void){
   float distance = forward * (encoderDiff * 2.0 * 3.14159 * (WHEEL_DIAMETER / 2.0)) / ENC_COUNTS;   // 車輪の移動距離を計算する
   x += distance; // 新しい自己位置を計算する
   lastEncoderPos = encoderPos;
-  Send_Data(x);
-}
-
-//データ送信プログラム
-void Send_Data(float distance){
-   Serial.println(distance);
-   byte x_bytes[sizeof(x)];
-   memcpy(x_bytes, &x, sizeof(x));
-   Serial.write(x_bytes, sizeof(x)); 
+  int int_x = int(x);
+  //String str_x = String(int_x);
+  Serial.println(int_x);
 }
 
 
@@ -125,18 +190,19 @@ void Control_Motor(float cmd_vel){
 void recieve_cmd() {
   estimatePosition();
   String inputString = ""; // 受信した文字列を格納する変数
-    inputString = Serial.readStringUntil("\n");
-  float cmd_vel = atof(inputString.c_str());
-  Serial.println("cmd_vel");
-  Serial.println(cmd_vel);
+  inputString = Serial.readStringUntil("\n");
+  float cmd_vel = atof(inputString.c_str()); //文字列を数字に変換(double型)
   Control_Motor(cmd_vel);
+  
 }
+
 
 
 
 
 //メインプログラム
 void loop() {
+  estimatePosition();
   if(Serial.available())
   {
     recieve_cmd();
