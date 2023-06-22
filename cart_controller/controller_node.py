@@ -41,6 +41,7 @@ class Cart_Controller(Node):
                 distanse.data=int(data)
 
                 self.ekf(distanse)
+                print(distanse.data)
                 self.odem_publisher_.publish(distanse)
         except:
             pass    
@@ -54,8 +55,9 @@ class Cart_Controller(Node):
             cmd_vel = -15
         else :
             cmd_vel = 0
-        message = bytes(str(cmd_vel) + "\n",'utf-8')
-        self.ser.write(message.encode())
+        print(cmd_vel)
+        message = bytes(str(cmd_vel) + "\n")
+        self.ser.write(message)
             
     
     def ekf(self,distanse):
