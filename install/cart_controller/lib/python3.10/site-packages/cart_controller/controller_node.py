@@ -18,51 +18,47 @@ import tf2_msgs.msg
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ptick
-from command_service.srv import CartCommand
 
 
-import sys
-sys.path.append("/home/suke/toms_ws/src/cart_controller/cart_controller/")
-from cart_module import Control_Cart
 class Cart_Controller(Node):
     def __init__(self,**args):
         super().__init__('cart_node')
+        self.ser = serial.Serial('/dev/ttyACM0',9600,timeout=None)
         self.x=0
         self.y=0
-        #self.odem_publisher_ = self.create_publisher(Int16, '/odom', 10)
-        #self.ekf_module=EKF()
+        self.odem_publisher_ = self.create_publisher(Int16, '/odom', 10)
+        self.mode_sub_ = self.create_subscription(String,'/cart_mode',self.controller,10)
+        self.ekf_module=EKF()
         #timer_period=0.1
         #self.timer = self.create_timer(timer_period, self.timer_callback)    
-        self.srv = self.create_service(CartCommand, "/cart", self.controller)
-        self.cart_control = Control_Cart()
 
+    def timer_callback(self):
+        try :
+            data_ = self.ser.readline().decode() 
+            data = data_.split('\r')[0]
+            if data:
+                distanse=Int16()
+                distanse.data=int(data)
 
-    # def timer_callback(self):
-    #     try :
-    #         data_ = self.ser.readline().decode() 
-    #         data = data_.split('\r')[0]
-    #         if data:
-    #             distanse=Int16()
-    #             distanse.data=int(data)
-    #             print(distanse.data)
-    #             # self.ekf(distanse)
-    #             # self.odem_publisher_.publish(distanse)
-    #     except:
-    #         pass    
+                self.ekf(distanse)
+                print(distanse.data)
+                self.odem_publisher_.publish(distanse)
+        except:
+            pass    
     
-    
-    def controller(self,request, response):
-        mode=request.data
+
+    def controller(self,data):
+        mode=data.data
         if mode=="forword":
-            self.cart_control.Go(9.0)
+            cmd_vel = 15
         elif mode=="back":
-            self.cart_control.Go(-9.0)
-        # message = bytes(str(cmd_vel) + "\n",'utf-8')
-        # self.ser.write(message)
-        print("----------------------------")
-        self.get_logger().info('動作完了')  
-        response.task_comp = True
-        return response
+            cmd_vel = -15
+        else :
+            cmd_vel = 0
+        print(cmd_vel)
+        message = bytes(str(cmd_vel) + "\n")
+        self.ser.write(message)
+            
     
     def ekf(self,distanse):
         pass
