@@ -16,10 +16,11 @@ class Control_Cart():
     def __init__(self):
         self.ser = serial.Serial('/dev/ttyACM0', 115200)
         
-    def Go(self, move_val):
+    def move_cart(self, move_val):
         # 進行方向へ
         if move_val > 0:
-            send_data = format(int(round(move_val, 1)*10), '04')
+            #formatは第2引数の値まで0埋め,move_val=10だったら0010　
+            send_data = format(int(round(move_val, 1)*10), '04') 
             send_data = 'F' + send_data
         # 逆方向へ
         elif move_val < 0:
@@ -28,21 +29,27 @@ class Control_Cart():
         # 停止
         else:
             send_data = 'F0000'
+
+        #なぜタイムスリープ入れないと動かないのか
         time.sleep(1)
-        send_data = self.check_data(send_data)
+        if send_data[-1] != ',':
+            send_data = send_data + ','
         time.sleep(1)
         self.ser.write(send_data.encode(encoding='utf-8'))
         time.sleep(1)
-        receive_data = self.serial_data() #何か文字を受け取ったら終了
-        # print(receive_data)
-        return 0
-    def check_data(self, send_data):
-        if send_data[-1] != ',':
-            send_data = send_data + ','
-        return send_data
-    def serial_data(self):
-        line = self.ser.readline()
-        line_disp = line.strip().decode('UTF-8')
-        return line_disp
+
+        try:
+            self.ser.timeout = 5 #(s)
+            line = self.ser.readline()
+            receive_data = line.strip().decode('UTF-8')    
+            if receive_data !="":
+                return receive_data
+            else :
+                return None
+
+        except serial.serialutil.SerialTimeoutException:
+            # タイムアウトエラーが発生した場合の処理
+            print("タイムアウトエラー: データの受信がタイムアウトしました")
+            return None
 
 
