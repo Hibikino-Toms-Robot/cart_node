@@ -14,6 +14,8 @@
 #define TRIG 12
 #define ECHO 13
 
+#define threshold 15.0 //2台間の距離の閾値
+
 uint8_t count = 0;
 char data[32];
 
@@ -135,7 +137,7 @@ void sound(){
       rc = 400.0;
     }
   }
-  if(rc < 15.0){
+  if(rc < threshold){
     stop_flag = 3;
   }
 }
@@ -301,5 +303,3 @@ void loop() {
     }
   }
 }
-
-
