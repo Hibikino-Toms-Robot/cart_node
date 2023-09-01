@@ -279,6 +279,7 @@ void loop() {
       }
 
       Control_Motor();
+      
       if(stop_flag == 1){
         Serial.print("1(Bump),");Serial.print(distance_cm);Serial.print(",");Serial.println(rc);
       }else if(stop_flag == 2){
