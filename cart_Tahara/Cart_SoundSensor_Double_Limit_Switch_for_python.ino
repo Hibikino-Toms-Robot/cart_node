@@ -1,8 +1,9 @@
 // https://github.com/NicoHood/PinChangeInterruptのライブラリを使用
 #include "PinChangeInterrupt.h"
+#include <MsTimer2.h>
 
 //Pin番号定義
-#define start 11
+#define start_pin 11
 #define runbrake 10
 #define cwccw 9
 #define pwm 5
@@ -42,17 +43,17 @@ float rc = 0;
 
 int pin_value;
 volatile unsigned long lastInterruptTime = 0;
-const unsigned long debounceDelay = 600; // デバウンス処理の待機時間
+const unsigned long debounceDelay = 1000; // デバウンス処理の待機時間
 int stop_flag = 0; //ポーリング時に終了させる
 
 float move_val;
 float distance_cm;
-int PWM = 50;
+int PWM = 30;
 int direction = 0;
 
 void setup() {
 
-  pinMode(start, OUTPUT);     //H:START L:STOP
+  pinMode(start_pin, OUTPUT);     //H:START L:STOP
   pinMode(runbrake, OUTPUT);  //H:RUN L:BREAK(Instant stop)
   pinMode(cwccw, OUTPUT);     //H:CW(Right) L:CCW(Left)
   pinMode(INT, OUTPUT);       //Don't use. Always LOW.
@@ -69,7 +70,7 @@ void setup() {
   pinMode(TRIG, OUTPUT);
 
   //最初はモータをストップさせておく
-  digitalWrite(start, HIGH);
+  digitalWrite(start_pin, HIGH);
   digitalWrite(runbrake, HIGH);
 
   pinMode(Bumper1, INPUT_PULLUP);
@@ -98,6 +99,8 @@ void setup() {
     }
     delay(1);
   }
+  MsTimer2::set(1000, sound);
+  MsTimer2::start();
 }
 
 //パルスの立下り数を検出
@@ -153,7 +156,7 @@ void Calculate_distance(void){
 //モータ正回転
 void Forward_motor(int vel){
   //運転
-  digitalWrite(start,LOW);     //New circuit
+  digitalWrite(start_pin,LOW);     //New circuit
   digitalWrite(runbrake,LOW);  //New circuit
   //正転
   digitalWrite(cwccw,HIGH);     //New circuit
@@ -164,7 +167,7 @@ void Forward_motor(int vel){
 //モータ逆回転
 void Reverse_motor(int vel){
   //運転
-  digitalWrite(start,LOW);     //New circuit
+  digitalWrite(start_pin,LOW);     //New circuit
   digitalWrite(runbrake,LOW);  //New circuit
   //逆転
   digitalWrite(cwccw,LOW);      //New circuit
@@ -175,7 +178,7 @@ void Reverse_motor(int vel){
 //モータ停止
 void Stop_motor(void){
   //停止
-  digitalWrite(start,HIGH);      //New circuit
+  digitalWrite(start_pin,HIGH);      //New circuit
   digitalWrite(runbrake,HIGH);   //New circuit
   //速度
   analogWrite(pwm, 0);
@@ -198,7 +201,7 @@ void Control_Motor(void){
     while(move_val > distance_cm){
         Forward_motor(PWM);
         Calculate_distance();
-        sound();
+        // sound();
         if(stop_flag == 1 || stop_flag == 2 || stop_flag == 3){
           break;
         }
@@ -212,7 +215,7 @@ void Control_Motor(void){
     while(move_val > distance_cm){
       Reverse_motor(PWM);
       Calculate_distance();
-      sound();
+      // sound();
       if(stop_flag == 1 || stop_flag == 2 || stop_flag == 3){
           break;
         }
