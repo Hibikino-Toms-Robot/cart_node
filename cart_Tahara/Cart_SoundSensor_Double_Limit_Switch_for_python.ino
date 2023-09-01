@@ -81,7 +81,6 @@ void setup() {
 
   //割り込み処理定義
   attachInterrupt(Speed, RecognizeRotation, FALLING);
-  // attachInterrupt(digitalPinToInterrupt(Bumper1), Lmt, FALLING);
   attachPinChangeInterrupt(digitalPinToPCINT(Bumper1), Bump1, FALLING);
   attachPinChangeInterrupt(digitalPinToPCINT(Bumper2), Bump2, FALLING);
 
@@ -257,17 +256,6 @@ float Conversion(int num1, int num2, int num3, int num4){
   return Num;
 }
 
-// //メインプログラム
-// void loop() {
-// //  if(Serial.available() > 0)
-//   if(Serial.available())
-//   {
-//     prev_direction = cart_direction;
-//     receive_data = Serial.read();
-//     Control_Motor();
-//     Send_Data();
-//   }
-// }
 
 void loop() {
   if(Serial.available()){
