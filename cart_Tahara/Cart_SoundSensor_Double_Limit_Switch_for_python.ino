@@ -1,5 +1,6 @@
-// https://github.com/NicoHood/PinChangeInterruptのライブラリを使用
+// https://github.com/NicoHood/PinChangeInterrupt のライブラリを使用
 #include "PinChangeInterrupt.h"
+// https://github.com/PaulStoffregen/MsTimer2　のライブラリを使用
 #include <MsTimer2.h>
 
 //Pin番号定義
