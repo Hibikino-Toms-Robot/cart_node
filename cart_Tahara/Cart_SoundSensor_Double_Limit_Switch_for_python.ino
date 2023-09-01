@@ -1,18 +1,18 @@
-// https://github.com/NicoHood/PinChangeInterrupt のライブラリを使用
+// https://github.com/NicoHood/PinChangeInterrupt
 #include "PinChangeInterrupt.h"
-// https://github.com/PaulStoffregen/MsTimer2　のライブラリを使用
+// https://github.com/PaulStoffregen/MsTimer2
 #include <MsTimer2.h>
 
 //Pin番号定義
-#define start_pin 11
-#define runbrake 10
-#define cwccw 9
-#define pwm 5
-#define INT 8
-#define AlarmReset 7
 #define Speed 1
 #define Bumper1 4
+#define pwm 5
 #define Bumper2 6
+#define AlarmReset 7
+#define INT 8
+#define cwccw 9
+#define runbrake 10
+#define start_pin 11
 #define TRIG 12
 #define ECHO 13
 
