@@ -99,7 +99,8 @@ void setup() {
     }
     delay(1);
   }
-  MsTimer2::set(1000, sound);
+  // タイマー割り込み
+  MsTimer2::set(100, sound);
   MsTimer2::start();
 }
 
